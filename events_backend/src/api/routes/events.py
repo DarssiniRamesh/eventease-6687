@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status, Response
 from sqlalchemy.orm import Session
 
 from src.db import crud
@@ -163,12 +163,15 @@ def update_event(
 def delete_event(
     event_id: int,
     db: Session = Depends(get_db),
-) -> None:
+) -> Response:
     """
     Delete an event by ID.
+
+    Returns:
+        An empty 204 No Content response when deletion succeeds.
     """
     ok = crud.delete_event(db, event_id)
     if not ok:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
-    # 204 No Content
-    return None
+    # 204 No Content with absolutely no body
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
