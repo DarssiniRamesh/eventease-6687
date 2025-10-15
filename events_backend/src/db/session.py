@@ -1,7 +1,7 @@
 """
 Database session and engine management.
 
-- Reads DATABASE_URL from environment (default sqlite:///./events.db)
+- Reads DATABASE_URL from environment (default sqlite:///./app.db)
 - Creates SQLAlchemy Engine and SessionLocal
 - Provides FastAPI dependency get_db()
 - Auto-creates tables in development mode
