@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text  # SQLAlchemy 2.x compatible text construct
 
 from src.core.config import settings
 from src.api.routes.events import router as events_router
@@ -37,8 +38,8 @@ def on_startup() -> None:
     db = None
     try:
         db = SessionLocal()
-        # execute a trivial no-op to initialize connection pool lazily
-        db.execute("SELECT 1")
+        # execute a trivial no-op to initialize connection pool lazily using SQLAlchemy 2.x text()
+        db.execute(text("SELECT 1"))
     except Exception as exc:
         # Raising here will cause uvicorn to fail fast with a clear error
         # This is preferable to latent failures on first request.
