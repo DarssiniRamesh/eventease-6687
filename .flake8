@@ -10,6 +10,9 @@ exclude =
     build,
     dist,
     node_modules,
-    */site-packages/*
+    events_backend/.venv,
+    events_backend/venv,
+    events_backend/env
 per-file-ignores =
+    # allow __init__ packages to have unused imports for re-export
     */__init__.py: F401

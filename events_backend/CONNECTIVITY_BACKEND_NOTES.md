@@ -2,20 +2,27 @@
 
 To allow the React frontend on http://localhost:3000 to access the FastAPI backend:
 
-- Install CORS middleware if not present:
-  from fastapi.middleware.cors import CORSMiddleware
+- CORS middleware is enabled in the FastAPI app.
+- In development/local ENV, the backend will automatically include http://localhost:3000 in allowed origins even if CORS_ORIGINS is not set.
+- You can explicitly configure origins via the CORS_ORIGINS env variable (comma-separated).
 
-- Add middleware to the FastAPI app:
-  app.add_middleware(
-      CORSMiddleware,
-      allow_origins=["http://localhost:3000"],
-      allow_credentials=False,
-      allow_methods=["*"],
-      allow_headers=["*"],
-  )
+Example .env (copy from .env.example):
+CORS_ORIGINS=http://localhost:3000
 
-- Ensure health endpoint at GET /health returns 200 OK (JSON or text).
+Verify endpoints and CORS:
 
-- Events routes should be mounted at /events (list/create) and /events/{event_id} (get/update/delete) to match frontend.
+- Health
+  curl -i http://localhost:3001/health
 
-If deploying to a preview environment, set REACT_APP_API_BASE_URL in the frontend to the public backend host, and include that origin in allow_origins accordingly.
+- Events list
+  curl -i http://localhost:3001/events
+
+- CORS preflight (should be 204 from Starlette)
+  curl -i -X OPTIONS \
+    -H "Origin: http://localhost:3000" \
+    -H "Access-Control-Request-Method: GET" \
+    http://localhost:3001/events
+
+Troubleshooting:
+- If preflight fails with "Disallowed CORS origin", ensure the frontend origin is in CORS_ORIGINS or that ENV is development/local.
+- Frontend should point REACT_APP_API_BASE_URL (or equivalent) to the backend (e.g., http://localhost:3001).

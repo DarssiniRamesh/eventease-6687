@@ -40,8 +40,20 @@ class Settings(BaseSettings):
     def cors_origins_list(self) -> List[str]:
         """
         Return CORS origins as a list, splitting by comma and stripping whitespace.
+
+        In development/local environments, ensure http://localhost:3000 is allowed by default
+        to support the React dev server, even if the environment variable is unset or empty.
         """
-        return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
+        origins = [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
+        env_lower = self.ENV.lower().strip()
+        if env_lower in ("dev", "develop", "development", "local"):
+            # Ensure localhost:3000 is present for local React dev server
+            if "http://localhost:3000" not in origins:
+                origins.append("http://localhost:3000")
+        # Fallback: if still empty for any reason, default to localhost:3000 to avoid preflight failures
+        if not origins:
+            origins = ["http://localhost:3000"]
+        return origins
 
 
 @lru_cache()
