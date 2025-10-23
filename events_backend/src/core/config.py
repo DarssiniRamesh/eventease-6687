@@ -27,7 +27,10 @@ class Settings(BaseSettings):
     # Default to local SQLite file in the container/app working directory
     DATABASE_URL: str = Field(default="sqlite:///./app.db", description="SQLAlchemy database URL")
     # Comma-separated CORS origins for the frontend
-    CORS_ORIGINS: str = Field(default="http://localhost:3000", description="Comma-separated CORS origins")
+    CORS_ORIGINS: str = Field(
+        default="http://localhost:3000,https://*.cloud.kavia.ai",
+        description="Comma-separated CORS origins",
+    )
     # Extra envs commonly provided by process managers; including them prevents validation issues
     ENV: str = Field(default="development", description="Environment name: development | local | production")
     UVICORN_HOST: str = Field(default="0.0.0.0", description="Uvicorn host")
@@ -43,17 +46,39 @@ class Settings(BaseSettings):
 
         In development/local environments, ensure http://localhost:3000 is allowed by default
         to support the React dev server, even if the environment variable is unset or empty.
+
+        Additionally, include common preview host patterns (cloud-based) so that frontend
+        previews like https://vscode-internal-<id>-beta.beta01.cloud.kavia.ai are allowed
+        without requiring manual .env edits. Starlette CORS supports wildcard subdomain
+        patterns such as "https://*.cloud.kavia.ai".
         """
-        origins = [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
+        # Split env CORS origins
+        env_origins = [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
+        origins: list[str] = list(env_origins)
+
         env_lower = self.ENV.lower().strip()
         if env_lower in ("dev", "develop", "development", "local"):
             # Ensure localhost:3000 is present for local React dev server
             if "http://localhost:3000" not in origins:
                 origins.append("http://localhost:3000")
+
+        # Add preview wildcard if not present; keeps explicit hosts working too.
+        preview_wildcard = "https://*.cloud.kavia.ai"
+        if preview_wildcard not in origins:
+            origins.append(preview_wildcard)
+
         # Fallback: if still empty for any reason, default to localhost:3000 to avoid preflight failures
         if not origins:
             origins = ["http://localhost:3000"]
-        return origins
+
+        # De-duplicate while preserving order
+        seen = set()
+        deduped: list[str] = []
+        for o in origins:
+            if o not in seen:
+                seen.add(o)
+                deduped.append(o)
+        return deduped
 
 
 @lru_cache()

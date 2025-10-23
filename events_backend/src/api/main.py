@@ -79,7 +79,7 @@ def root_health_check():
     "/health",
     tags=["Health"],
     summary="Health Check",
-    description="Simple health check endpoint.",
+    description="Simple health check endpoint. Useful for verifying CORS and connectivity from the frontend.",
 )
 def health_check():
     """

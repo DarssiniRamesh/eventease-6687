@@ -1,10 +1,12 @@
 # CORS and Base URL requirements for EventEase Frontend
 
-To allow the React frontend on http://localhost:3000 to access the FastAPI backend:
+To allow the React frontend on http://localhost:3000 or a cloud preview origin to access the FastAPI backend:
 
 - CORS middleware is enabled in the FastAPI app.
 - In development/local ENV, the backend will automatically include http://localhost:3000 in allowed origins even if CORS_ORIGINS is not set.
 - You can explicitly configure origins via the CORS_ORIGINS env variable (comma-separated).
+- The default configuration also includes a wildcard for preview hosts: https://*.cloud.kavia.ai
+  (Starlette CORS supports wildcard subdomains).
 
 Example .env (copy from .env.example):
 CORS_ORIGINS=http://localhost:3000
